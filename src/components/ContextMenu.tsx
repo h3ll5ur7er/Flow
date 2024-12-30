@@ -1,6 +1,9 @@
-import { Menu, MenuItem } from '@mui/material';
+import { Menu, MenuItem, ListSubheader, Collapse, IconButton, TextField, Box } from '@mui/material';
 import { Node, Edge } from 'reactflow';
 import { useStore } from '../store/useStore';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import { useState } from 'react';
 
 interface ContextMenuProps {
   type: 'canvas' | 'node' | 'edge';
@@ -22,6 +25,8 @@ export function ContextMenu({
   onDeleteEdge,
 }: ContextMenuProps) {
   const { gameMetadata, setNodes } = useStore();
+  const [expandedMachines, setExpandedMachines] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSetRecipe = (recipeId: string) => {
     if (!node) return;
@@ -57,6 +62,34 @@ export function ContextMenu({
       onClose();
     }
   };
+
+  const toggleMachine = (machine: string) => {
+    setExpandedMachines(prev => ({
+      ...prev,
+      [machine]: !prev[machine]
+    }));
+  };
+
+  // Group recipes by machine
+  const recipesByMachine = gameMetadata?.recipes.reduce((acc, recipe) => {
+    if (!acc[recipe.machine]) {
+      acc[recipe.machine] = [];
+    }
+    acc[recipe.machine].push(recipe);
+    return acc;
+  }, {} as Record<string, typeof gameMetadata.recipes>) || {};
+
+  // Filter recipes based on search query
+  const filteredRecipesByMachine = Object.entries(recipesByMachine).reduce((acc, [machine, recipes]) => {
+    const filteredRecipes = recipes.filter(recipe => 
+      recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      machine.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    if (filteredRecipes.length > 0) {
+      acc[machine] = filteredRecipes;
+    }
+    return acc;
+  }, {} as Record<string, typeof gameMetadata.recipes>);
 
   if (!position) return null;
 
@@ -101,13 +134,50 @@ export function ContextMenu({
       )}
       {type === 'node' && node?.type === 'recipe' && (
         <>
-          {gameMetadata?.recipes.map(recipe => (
-            <MenuItem
-              key={recipe.name}
-              onClick={() => handleSetRecipe(recipe.name)}
-            >
-              Set Recipe: {recipe.name}
-            </MenuItem>
+          <Box sx={{ p: 1, width: 250 }}>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="Search recipes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            />
+          </Box>
+          {Object.entries(filteredRecipesByMachine).map(([machine, recipes]) => (
+            <div key={machine}>
+              <MenuItem
+                onClick={() => toggleMachine(machine)}
+                sx={{ 
+                  backgroundColor: 'action.hover',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}
+              >
+                {machine}
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMachine(machine);
+                  }}
+                >
+                  {expandedMachines[machine] ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
+              </MenuItem>
+              <Collapse in={expandedMachines[machine]} timeout="auto">
+                {recipes.map(recipe => (
+                  <MenuItem
+                    key={recipe.name}
+                    onClick={() => handleSetRecipe(recipe.name)}
+                    sx={{ pl: 4 }}
+                  >
+                    {recipe.name}
+                  </MenuItem>
+                ))}
+              </Collapse>
+            </div>
           ))}
           <MenuItem onClick={handleDeleteNode} sx={{ color: 'error.main' }}>
             Delete Node

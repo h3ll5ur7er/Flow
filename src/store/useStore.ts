@@ -3,6 +3,7 @@ import { Node, Edge } from 'reactflow';
 
 interface GameMetadata {
   name: string;
+  version: string;
   machines: Machine[];
   items: Item[];
   recipes: Recipe[];
@@ -34,9 +35,11 @@ interface Recipe {
 interface FlowState {
   nodes: Node[];
   edges: Edge[];
+  flowName: string;
   gameMetadata: GameMetadata | null;
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void;
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
+  setFlowName: (name: string) => void;
   setGameMetadata: (metadata: GameMetadata) => void;
 }
 
@@ -50,7 +53,13 @@ const loadGameMetadata = () => {
   } catch (err) {
     console.error('Failed to load game metadata:', err);
   }
-  return null;
+  return {
+    name: 'New Game',
+    version: '1.0.0',
+    machines: [],
+    items: [],
+    recipes: [],
+  };
 };
 
 // Load flow graph state from localStorage
@@ -66,6 +75,7 @@ const loadFlowGraph = () => {
   return {
     nodes: [],
     edges: [],
+    flowName: 'New Flow',
   };
 };
 
@@ -83,11 +93,12 @@ const persistGameMetadata = (metadata: GameMetadata | null) => {
 };
 
 // Save flow graph to localStorage
-const persistFlowGraph = (nodes: Node[], edges: Edge[]) => {
+const persistFlowGraph = (nodes: Node[], edges: Edge[], flowName: string) => {
   try {
     const persistedGraph = {
       nodes,
       edges,
+      flowName,
     };
     localStorage.setItem('flowGraphState', JSON.stringify(persistedGraph));
   } catch (err) {
@@ -101,16 +112,21 @@ const initialGraph = loadFlowGraph();
 export const useStore = create<FlowState>((set) => ({
   nodes: initialGraph.nodes,
   edges: initialGraph.edges,
+  flowName: initialGraph.flowName,
   gameMetadata: initialMetadata,
   setNodes: (nodes) => set((state) => {
     const newNodes = typeof nodes === 'function' ? nodes(state.nodes) : nodes;
-    persistFlowGraph(newNodes, state.edges);
+    persistFlowGraph(newNodes, state.edges, state.flowName);
     return { nodes: newNodes };
   }),
   setEdges: (edges) => set((state) => {
     const newEdges = typeof edges === 'function' ? edges(state.edges) : edges;
-    persistFlowGraph(state.nodes, newEdges);
+    persistFlowGraph(state.nodes, newEdges, state.flowName);
     return { edges: newEdges };
+  }),
+  setFlowName: (flowName) => set((state) => {
+    persistFlowGraph(state.nodes, state.edges, flowName);
+    return { flowName };
   }),
   setGameMetadata: (metadata) => set((state) => {
     persistGameMetadata(metadata);

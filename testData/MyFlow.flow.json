@@ -1,0 +1,595 @@
+{
+  "nodes": [
+    {
+      "id": "recipe-1",
+      "type": "recipe",
+      "position": {
+        "x": 240,
+        "y": 105
+      },
+      "data": {
+        "label": "Iron Ore",
+        "recipe": {
+          "name": "Iron Ore",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "Iron Ore",
+              "quantity": 1
+            }
+          ],
+          "machine": "Mining Drill"
+        }
+      },
+      "width": 407,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 240,
+        "y": 105
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-2",
+      "type": "recipe",
+      "position": {
+        "x": 120,
+        "y": 315
+      },
+      "data": {
+        "label": "Copper Ore",
+        "recipe": {
+          "name": "Copper Ore",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "Copper Ore",
+              "quantity": 1
+            }
+          ],
+          "machine": "Mining Drill"
+        }
+      },
+      "width": 407,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 120,
+        "y": 315
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-3",
+      "type": "recipe",
+      "position": {
+        "x": 720,
+        "y": 105
+      },
+      "data": {
+        "label": "Iron Plate",
+        "recipe": {
+          "name": "Iron Plate",
+          "inputs": [
+            {
+              "name": "Iron Ore",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Iron Plate",
+              "quantity": 1
+            }
+          ],
+          "machine": "Stone Furnace"
+        }
+      },
+      "width": 430,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 720,
+        "y": 105
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-4",
+      "type": "recipe",
+      "position": {
+        "x": 660,
+        "y": 315
+      },
+      "data": {
+        "label": "Copper Plate",
+        "recipe": {
+          "name": "Copper Plate",
+          "inputs": [
+            {
+              "name": "Copper Ore",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            }
+          ],
+          "machine": "Stone Furnace"
+        }
+      },
+      "width": 430,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 660,
+        "y": 315
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-5",
+      "type": "recipe",
+      "position": {
+        "x": 1095,
+        "y": -105
+      },
+      "data": {
+        "label": "Gear",
+        "recipe": {
+          "name": "Gear",
+          "inputs": [
+            {
+              "name": "Iron Plate",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Gear",
+              "quantity": 1
+            }
+          ],
+          "machine": "Assembling Machine 1"
+        }
+      },
+      "width": 479,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1095,
+        "y": -105
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-6",
+      "type": "recipe",
+      "position": {
+        "x": 1020,
+        "y": 615
+      },
+      "data": {
+        "label": "Copper Wire",
+        "recipe": {
+          "name": "Copper Wire",
+          "inputs": [
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Copper Wire",
+              "quantity": 1
+            }
+          ],
+          "machine": "Assembling Machine 1"
+        }
+      },
+      "width": 479,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1020,
+        "y": 615
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-7",
+      "type": "recipe",
+      "position": {
+        "x": 1305,
+        "y": 120
+      },
+      "data": {
+        "label": "Red Science",
+        "recipe": {
+          "name": "Red Science",
+          "inputs": [
+            {
+              "name": "Gear",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Red Science",
+              "quantity": 1
+            }
+          ],
+          "machine": "Assembling Machine 1"
+        }
+      },
+      "width": 479,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1305,
+        "y": 120
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-8",
+      "type": "recipe",
+      "position": {
+        "x": 1305,
+        "y": 345
+      },
+      "data": {
+        "label": "Green Circuits",
+        "recipe": {
+          "name": "Green Circuits",
+          "inputs": [
+            {
+              "name": "Iron Plate",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Wire",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Green Circuits",
+              "quantity": 1
+            }
+          ],
+          "machine": "Assembling Machine 1"
+        }
+      },
+      "width": 479,
+      "height": 93,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 1305,
+        "y": 345
+      }
+    },
+    {
+      "id": "recipe-9",
+      "type": "recipe",
+      "position": {
+        "x": 1830,
+        "y": 135
+      },
+      "data": {
+        "label": "Research",
+        "recipe": {
+          "name": "Research",
+          "inputs": [
+            {
+              "name": "Red Science",
+              "quantity": 1
+            }
+          ],
+          "outputs": [],
+          "machine": "Sink"
+        }
+      },
+      "width": 364,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1830,
+        "y": 135
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-10",
+      "type": "recipe",
+      "position": {
+        "x": 1830,
+        "y": 345
+      },
+      "data": {
+        "label": "Sink Green Circuits",
+        "recipe": {
+          "name": "Sink Green Circuits",
+          "inputs": [
+            {
+              "name": "Green Circuits",
+              "quantity": 1
+            }
+          ],
+          "outputs": [],
+          "machine": "Sink"
+        }
+      },
+      "width": 449,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1830,
+        "y": 345
+      },
+      "dragging": false
+    },
+    {
+      "id": "subgraph-12",
+      "type": "subgraph",
+      "position": {
+        "x": 1665,
+        "y": 780
+      },
+      "data": {
+        "label": "New Subgraph"
+      },
+      "width": 200,
+      "height": 76,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1665,
+        "y": 780
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-13",
+      "type": "recipe",
+      "position": {
+        "x": 990,
+        "y": 1050
+      },
+      "data": {
+        "label": "FooBar",
+        "recipe": {
+          "name": "FooBar",
+          "inputs": [
+            {
+              "name": "Green Circuits",
+              "quantity": 1
+            },
+            {
+              "name": "Red Science",
+              "quantity": 1
+            },
+            {
+              "name": "Gear",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Wire",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Ore",
+              "quantity": 1
+            },
+            {
+              "name": "Iron Plate",
+              "quantity": 1
+            },
+            {
+              "name": "Iron Ore",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Iron Ore",
+              "quantity": 1
+            },
+            {
+              "name": "Iron Plate",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Ore",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            },
+            {
+              "name": "Copper Wire",
+              "quantity": 1
+            },
+            {
+              "name": "Gear",
+              "quantity": 1
+            },
+            {
+              "name": "Red Science",
+              "quantity": 1
+            },
+            {
+              "name": "Green Circuits",
+              "quantity": 1
+            }
+          ],
+          "machine": "BarFoo"
+        }
+      },
+      "width": 383,
+      "height": 339,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 990,
+        "y": 1050
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-15",
+      "type": "recipe",
+      "position": {
+        "x": 1050,
+        "y": 825
+      },
+      "data": {
+        "label": "Copper Wire",
+        "recipe": {
+          "name": "Copper Wire",
+          "inputs": [
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Copper Wire",
+              "quantity": 1
+            }
+          ],
+          "machine": "Assembling Machine 1"
+        }
+      },
+      "width": 479,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1050,
+        "y": 825
+      },
+      "dragging": false
+    },
+    {
+      "id": "recipe-14",
+      "type": "recipe",
+      "position": {
+        "x": 240,
+        "y": 795
+      },
+      "data": {
+        "label": "Copper Plate",
+        "recipe": {
+          "name": "Copper Plate",
+          "inputs": [
+            {
+              "name": "Copper Ore",
+              "quantity": 1
+            }
+          ],
+          "outputs": [
+            {
+              "name": "Copper Plate",
+              "quantity": 1
+            }
+          ],
+          "machine": "Stone Furnace"
+        }
+      },
+      "width": 430,
+      "height": 93,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 240,
+        "y": 795
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "recipe-1",
+      "sourceHandle": "output-0",
+      "target": "recipe-3",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-1output-0-recipe-3input-0"
+    },
+    {
+      "source": "recipe-2",
+      "sourceHandle": "output-0",
+      "target": "recipe-4",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-2output-0-recipe-4input-0"
+    },
+    {
+      "source": "recipe-3",
+      "sourceHandle": "output-0",
+      "target": "recipe-5",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-3output-0-recipe-5input-0"
+    },
+    {
+      "source": "recipe-4",
+      "sourceHandle": "output-0",
+      "target": "recipe-6",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-4output-0-recipe-6input-0"
+    },
+    {
+      "source": "recipe-3",
+      "sourceHandle": "output-0",
+      "target": "recipe-8",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-3output-0-recipe-8input-0"
+    },
+    {
+      "source": "recipe-6",
+      "sourceHandle": "output-0",
+      "target": "recipe-8",
+      "targetHandle": "input-1",
+      "id": "reactflow__edge-recipe-6output-0-recipe-8input-1"
+    },
+    {
+      "source": "recipe-5",
+      "sourceHandle": "output-0",
+      "target": "recipe-7",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-5output-0-recipe-7input-0"
+    },
+    {
+      "source": "recipe-4",
+      "sourceHandle": "output-0",
+      "target": "recipe-7",
+      "targetHandle": "input-1",
+      "id": "reactflow__edge-recipe-4output-0-recipe-7input-1"
+    },
+    {
+      "source": "recipe-8",
+      "sourceHandle": "output-0",
+      "target": "recipe-10",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-8output-0-recipe-10input-0"
+    },
+    {
+      "source": "recipe-7",
+      "sourceHandle": "output-0",
+      "target": "recipe-9",
+      "targetHandle": "input-0",
+      "id": "reactflow__edge-recipe-7output-0-recipe-9input-0"
+    }
+  ],
+  "name": "MyFlow"
+}

@@ -1,16 +1,66 @@
-import { Handle, Position } from 'reactflow';
+import { Handle, Position, useStore as useReactFlowStore } from 'reactflow';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { Recipe } from '../../store/useStore';
 
 interface NodeData {
   label: string;
   recipe: Recipe | null;
+  isConnecting: boolean;
+  validHandles: Set<string>;
+  connectionState: {
+    nodeId: string | null;
+    handleId: string | null;
+    handleType: 'source' | 'target' | null;
+    sourceItemName: string | null;
+  };
 }
 
 export function RecipeNode({ data }: { data: NodeData }) {
-  // Get the machine configuration if a recipe is set
-  const machine = data.recipe ? 
-    data.recipe.machine : null;
+  const isHandleValid = (handleId: string, itemName: string) => {
+    if (!data.isConnecting || !data.connectionState.sourceItemName) return true;
+    
+    // If we're dragging from a source (output), only highlight matching input handles
+    // If we're dragging from a target (input), only highlight matching output handles
+    const isInput = handleId.startsWith('input-');
+    const isDraggingFromSource = data.connectionState.handleId?.startsWith('output-');
+
+    // Only validate if we're looking at the right type of handle
+    if (isInput !== isDraggingFromSource) return false;
+
+    console.log('Validating handle:', {
+      handleId,
+      itemName,
+      sourceItemName: data.connectionState.sourceItemName,
+      isInput,
+      isDraggingFromSource
+    });
+
+    // Check if the item types match
+    return itemName === data.connectionState.sourceItemName;
+  };
+
+  const getHandleStyle = (handleId: string, type: 'source' | 'target', itemName: string) => {
+    const isValid = isHandleValid(handleId, itemName);
+    const isConnecting = data.isConnecting;
+
+    const baseStyle = {
+      width: '16px',
+      height: '16px',
+      background: isConnecting ? (isValid ? '#4CAF50' : '#666') : '#666',
+      border: isConnecting ? (isValid ? '2px solid #2E7D32' : '1px solid #888') : '1px solid #888',
+      [type === 'source' ? 'right' : 'left']: '-8px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      borderRadius: '8px',
+      cursor: isConnecting ? (isValid ? 'pointer' : 'not-allowed') : 'pointer',
+      zIndex: 1,
+      opacity: isConnecting ? (isValid ? 1 : 0.2) : 1,
+      boxShadow: isConnecting && isValid ? '0 0 8px #4CAF50' : 'none',
+      transition: 'all 0.2s ease',
+    };
+
+    return baseStyle;
+  };
 
   return (
     <Card sx={{ 
@@ -18,7 +68,9 @@ export function RecipeNode({ data }: { data: NodeData }) {
       color: '#fff',
       border: '1px solid #333',
       display: 'flex',
-      minWidth: 300
+      minWidth: 300,
+      position: 'relative',
+      overflow: 'visible'
     }}>
       {/* Input Column */}
       <Box sx={{ 
@@ -39,7 +91,11 @@ export function RecipeNode({ data }: { data: NodeData }) {
               position: 'relative',
               p: 1,
               borderBottom: index !== array.length - 1 ? '1px solid #333' : 'none',
-              minHeight: 40
+              minHeight: 40,
+              '& .react-flow__handle': {
+                opacity: 1,
+                zIndex: 3
+              }
             }}
           >
             <Typography variant="body2" sx={{ pr: 2 }}>
@@ -49,14 +105,8 @@ export function RecipeNode({ data }: { data: NodeData }) {
               type="target"
               position={Position.Left}
               id={`input-${index}`}
-              style={{
-                width: '8px',
-                height: '8px',
-                background: '#666',
-                border: '1px solid #888',
-                left: 0,
-                transform: 'translateX(-50%)'
-              }}
+              style={getHandleStyle(`input-${index}`, 'target', input.name)}
+              data-item={input.name}
             />
           </Box>
         ))}
@@ -103,7 +153,11 @@ export function RecipeNode({ data }: { data: NodeData }) {
               position: 'relative',
               p: 1,
               borderBottom: index !== array.length - 1 ? '1px solid #333' : 'none',
-              minHeight: 40
+              minHeight: 40,
+              '& .react-flow__handle': {
+                opacity: 1,
+                zIndex: 3
+              }
             }}
           >
             <Typography variant="body2" sx={{ pl: 2 }}>
@@ -113,14 +167,8 @@ export function RecipeNode({ data }: { data: NodeData }) {
               type="source"
               position={Position.Right}
               id={`output-${index}`}
-              style={{
-                width: '8px',
-                height: '8px',
-                background: '#666',
-                border: '1px solid #888',
-                right: 0,
-                transform: 'translateX(50%)'
-              }}
+              style={getHandleStyle(`output-${index}`, 'source', output.name)}
+              data-item={output.name}
             />
           </Box>
         ))}

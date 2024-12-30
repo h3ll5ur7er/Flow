@@ -1,0 +1,287 @@
+{
+  "name": "Explorio",
+  "machines": [
+    {
+      "name": "Stone Furnace",
+      "inputs": 1,
+      "outputs": 1
+    },
+    {
+      "name": "Assembling Machine 1",
+      "inputs": 3,
+      "outputs": 1
+    },
+    {
+      "name": "Mining Drill",
+      "inputs": 0,
+      "outputs": 1
+    },
+    {
+      "name": "Sink",
+      "inputs": 1,
+      "outputs": 0
+    },
+    {
+      "name": "BarFoo",
+      "inputs": 8,
+      "outputs": 8
+    }
+  ],
+  "items": [
+    {
+      "name": "Iron Ore",
+      "stackSize": 100
+    },
+    {
+      "name": "Iron Plate",
+      "stackSize": 100
+    },
+    {
+      "name": "Copper Ore",
+      "stackSize": 100
+    },
+    {
+      "name": "Copper Plate",
+      "stackSize": 100
+    },
+    {
+      "name": "Copper Wire",
+      "stackSize": 100
+    },
+    {
+      "name": "Gear",
+      "stackSize": 100
+    },
+    {
+      "name": "Red Science",
+      "stackSize": 100
+    },
+    {
+      "name": "Green Circuits",
+      "stackSize": 100
+    }
+  ],
+  "recipes": [
+    {
+      "name": "Red Science",
+      "inputs": [
+        {
+          "name": "Gear",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Plate",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Red Science",
+          "quantity": 1
+        }
+      ],
+      "machine": "Assembling Machine 1"
+    },
+    {
+      "name": "Green Circuits",
+      "inputs": [
+        {
+          "name": "Iron Plate",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Wire",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Green Circuits",
+          "quantity": 1
+        }
+      ],
+      "machine": "Assembling Machine 1"
+    },
+    {
+      "name": "Iron Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "Iron Ore",
+          "quantity": 1
+        }
+      ],
+      "machine": "Mining Drill"
+    },
+    {
+      "name": "Copper Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "Copper Ore",
+          "quantity": 1
+        }
+      ],
+      "machine": "Mining Drill"
+    },
+    {
+      "name": "Iron Plate",
+      "inputs": [
+        {
+          "name": "Iron Ore",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Iron Plate",
+          "quantity": 1
+        }
+      ],
+      "machine": "Stone Furnace"
+    },
+    {
+      "name": "Copper Plate",
+      "inputs": [
+        {
+          "name": "Copper Ore",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Copper Plate",
+          "quantity": 1
+        }
+      ],
+      "machine": "Stone Furnace"
+    },
+    {
+      "name": "Copper Wire",
+      "inputs": [
+        {
+          "name": "Copper Plate",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Copper Wire",
+          "quantity": 1
+        }
+      ],
+      "machine": "Assembling Machine 1"
+    },
+    {
+      "name": "Gear",
+      "inputs": [
+        {
+          "name": "Iron Plate",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Gear",
+          "quantity": 1
+        }
+      ],
+      "machine": "Assembling Machine 1"
+    },
+    {
+      "name": "Sink Green Circuits",
+      "inputs": [
+        {
+          "name": "Green Circuits",
+          "quantity": 1
+        }
+      ],
+      "outputs": [],
+      "machine": "Sink"
+    },
+    {
+      "name": "Research",
+      "inputs": [
+        {
+          "name": "Red Science",
+          "quantity": 1
+        }
+      ],
+      "outputs": [],
+      "machine": "Sink"
+    },
+    {
+      "name": "FooBar",
+      "inputs": [
+        {
+          "name": "Green Circuits",
+          "quantity": 1
+        },
+        {
+          "name": "Red Science",
+          "quantity": 1
+        },
+        {
+          "name": "Gear",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Wire",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Plate",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Ore",
+          "quantity": 1
+        },
+        {
+          "name": "Iron Plate",
+          "quantity": 1
+        },
+        {
+          "name": "Iron Ore",
+          "quantity": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Iron Ore",
+          "quantity": 1
+        },
+        {
+          "name": "Iron Plate",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Ore",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Plate",
+          "quantity": 1
+        },
+        {
+          "name": "Copper Wire",
+          "quantity": 1
+        },
+        {
+          "name": "Gear",
+          "quantity": 1
+        },
+        {
+          "name": "Red Science",
+          "quantity": 1
+        },
+        {
+          "name": "Green Circuits",
+          "quantity": 1
+        }
+      ],
+      "machine": "BarFoo"
+    }
+  ],
+  "version": "1.0.0"
+}
