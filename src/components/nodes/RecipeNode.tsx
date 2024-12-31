@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Box, Typography } from '@mui/material';
-import { RecipeNodeData } from '../../types';
+import { RecipeNodeData, HandleType } from '../../types';
 
 const getHandleStyle = (isConnecting: boolean, isValidConnection: boolean) => ({
   width: 16,
@@ -21,25 +21,6 @@ const getRightHandleStyle = (isConnecting: boolean, isValidConnection: boolean) 
 });
 
 export const RecipeNode = memo(({ id, data }: NodeProps<RecipeNodeData>) => {
-  const isValidConnection = useMemo(() => {
-    if (!data.isConnecting || !data.connectionState?.sourceItemName) return true;
-
-    const recipe = data.recipe;
-    if (!recipe) return false;
-
-    const isDraggingFromSource = data.connectionState?.handleId?.startsWith('output-');
-    const itemName = isDraggingFromSource
-      ? recipe.inputs[parseInt(data.connectionState?.handleId?.split('-')[1] || '0')]?.name
-      : recipe.outputs[parseInt(data.connectionState?.handleId?.split('-')[1] || '0')]?.name;
-
-    if (!itemName) return false;
-
-    return itemName === data.connectionState?.sourceItemName;
-  }, [data.isConnecting, data.connectionState?.sourceItemName, data.connectionState?.handleId]);
-
-  const leftHandleStyle = getHandleStyle(data.isConnecting ?? false, isValidConnection);
-  const rightHandleStyle = getRightHandleStyle(data.isConnecting ?? false, isValidConnection);
-
   // Show placeholder if no recipe is selected
   if (!data.recipe) {
     return (
@@ -75,47 +56,67 @@ export const RecipeNode = memo(({ id, data }: NodeProps<RecipeNodeData>) => {
     }}>
       <Box sx={{ display: 'flex', gap: 1, p: 1 }}>
         <Box sx={{ flex: 1 }}>
-          {data.recipe.inputs.map((input, index) => (
-            <Box key={`input-${index}`} sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              mb: 0.5,
-              position: 'relative',
-              height: 24,
-            }}>
-              <Handle
-                type="target"
-                position={Position.Left}
-                style={leftHandleStyle}
-                id={`input-${index}`}
-              />
-              <Typography variant="caption" sx={{ ml: 2 }}>
-                {input.name} × {input.quantity}
-              </Typography>
-            </Box>
-          ))}
+          {data.recipe.inputs.map((input, index) => {
+            // Check if this specific input should be highlighted
+            const isValidInput = !!data.isConnecting && 
+              data.connectionState?.handleType === HandleType.Source &&
+              data.connectionState?.nodeId !== id &&
+              input.name === data.connectionState?.sourceItemName;
+
+            return (
+              <Box key={`input-${index}`} sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 0.5,
+                position: 'relative',
+                height: 24,
+              }}>
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  style={getHandleStyle(!!data.isConnecting, isValidInput)}
+                  id={`input-${index}`}
+                  className={isValidInput ? 'highlight' : ''}
+                  data-testid={`recipe-input-${id}-${index}`}
+                />
+                <Typography variant="caption" sx={{ ml: 2 }}>
+                  {input.name} × {input.quantity}
+                </Typography>
+              </Box>
+            );
+          })}
         </Box>
         <Box sx={{ flex: 1, textAlign: 'right' }}>
-          {data.recipe.outputs.map((output, index) => (
-            <Box key={`output-${index}`} sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'flex-end', 
-              mb: 0.5,
-              position: 'relative',
-              height: 24,
-            }}>
-              <Typography variant="caption" sx={{ mr: 2 }}>
-                {output.name} × {output.quantity}
-              </Typography>
-              <Handle
-                type="source"
-                position={Position.Right}
-                style={rightHandleStyle}
-                id={`output-${index}`}
-              />
-            </Box>
-          ))}
+          {data.recipe.outputs.map((output, index) => {
+            // Check if this specific output should be highlighted
+            const isValidOutput = !!data.isConnecting && 
+              data.connectionState?.handleType === HandleType.Target &&
+              data.connectionState?.nodeId !== id &&
+              output.name === data.connectionState?.sourceItemName;
+
+            return (
+              <Box key={`output-${index}`} sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-end', 
+                mb: 0.5,
+                position: 'relative',
+                height: 24,
+              }}>
+                <Typography variant="caption" sx={{ mr: 2 }}>
+                  {output.name} × {output.quantity}
+                </Typography>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  style={getRightHandleStyle(!!data.isConnecting, isValidOutput)}
+                  id={`output-${index}`}
+                  className={isValidOutput ? 'highlight' : ''}
+                  data-testid={`recipe-output-${id}-${index}`}
+                />
+              </Box>
+            );
+          })}
         </Box>
       </Box>
       <Typography variant="caption" align="center" display="block" sx={{ opacity: 0.7, fontSize: '0.7rem', mt: 0.5, mb: 1 }}>

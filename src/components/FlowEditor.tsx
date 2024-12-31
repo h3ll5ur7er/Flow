@@ -23,7 +23,7 @@ import { ContextMenu } from './ContextMenu';
 import { ConnectionState, HandleType, FlowNode, FlowEdge, isDynamicNode, isRecipeNode } from '../types';
 import { NODE_TYPES } from '../nodeTypes';
 
-function Flow() {
+export function Flow() {
   const { nodes, edges, setNodes, setEdges } = useStore();
   const { screenToFlowPosition } = useReactFlow();
   
@@ -256,19 +256,64 @@ function Flow() {
         sourceItemName = sourceItem.name;
       }
     } else if ('type' in sourceNode.data) {
-      // For dynamic nodes, use the node's item type or '*' if untyped
+      // For dynamic nodes:
+      // - If typed, use its item type
+      // - If untyped, use '*' to indicate it can connect to anything
       sourceItemName = sourceNode.data.itemType || '*';
     }
 
-    setConnectionState({
+    console.log('Setting connection state:', {
+      nodeId,
+      handleId,
+      handleType,
+      sourceItemName,
+      sourceNode,
+      sourceIndex,
+      lookingFor: handleType === HandleType.Source ? 'inputs that accept ' + sourceItemName : 'outputs that produce ' + sourceItemName,
+      nodeType: sourceNode.type,
+      nodeData: sourceNode.data
+    });
+
+    // Update nodes immediately with new connection state
+    const newConnectionState = {
       nodeId,
       handleId,
       handleType: handleType as HandleType,
       sourceItemName,
-    });
+    };
+
+    setNodes(nodes => nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isConnecting: true,
+        connectionState: newConnectionState,
+        sourceItemName: newConnectionState.sourceItemName,
+        handleType: newConnectionState.handleType,
+      },
+    })));
+
+    setConnectionState(newConnectionState);
   }, [nodes]);
 
   const onConnectEnd: OnConnectEnd = useCallback(() => {
+    // Reset nodes connection state
+    setNodes(nodes => nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isConnecting: false,
+        connectionState: {
+          nodeId: null,
+          handleId: null,
+          handleType: null,
+          sourceItemName: null,
+        },
+        sourceItemName: null,
+        handleType: null,
+      },
+    })));
+
     setConnectionState({
       nodeId: null,
       handleId: null,
@@ -392,7 +437,16 @@ function Flow() {
   }, []);
 
   const isValidConnection = useCallback((node: FlowNode, connectionState: ConnectionState) => {
-    if (connectionState.nodeId === null || connectionState.nodeId === node.id) {
+    console.log('Checking connection validation for:', {
+      nodeId: node.id,
+      nodeType: node.type,
+      nodeData: node.data,
+      connectionState,
+      isDraggingFromSource: connectionState.handleType === HandleType.Source
+    });
+
+    if (connectionState.nodeId === null) {
+      console.log('Rejected: null connection state');
       return false;
     }
 
@@ -400,55 +454,74 @@ function Flow() {
 
     // For recipe nodes
     if (isRecipeNode(node.data)) {
-      if (!node.data.recipe) return false;
-      
-      // When dragging from a source handle (output), highlight valid input handles
-      if (isDraggingFromSource) {
-        return node.data.recipe.inputs.some((input: { name: string }) => 
-          input.name === connectionState.sourceItemName || connectionState.sourceItemName === '*'
-        );
+      if (!node.data.recipe) {
+        console.log('Rejected: Recipe node has no recipe');
+        return false;
       }
       
-      // When dragging from a target handle (input), highlight valid output handles
-      return node.data.recipe.outputs.some((output: { name: string }) => 
-        output.name === connectionState.sourceItemName || connectionState.sourceItemName === '*'
-      );
+      // When dragging from a source handle (output), we should check if this node's inputs match
+      // When dragging from a target handle (input), we should check if this node's outputs match
+      const itemsToCheck = isDraggingFromSource ? node.data.recipe.inputs : node.data.recipe.outputs;
+
+      // If source is a wildcard (*), any connection is valid
+      if (connectionState.sourceItemName === '*') {
+        console.log('Accepted: Wildcard connection to recipe node');
+        return true;
+      }
+
+      const matches = itemsToCheck.some((item: { name: string }) => item.name === connectionState.sourceItemName);
+
+      console.log(`Recipe node - checking ${isDraggingFromSource ? 'inputs' : 'outputs'}:`, {
+        items: itemsToCheck,
+        sourceItemName: connectionState.sourceItemName,
+        matches
+      });
+
+      return matches;
     }
 
     // For dynamic nodes (splerger/sink)
     if (isDynamicNode(node.data)) {
-      // Skip the node we're dragging from
-      if (node.id === connectionState.nodeId) {
-        return false;
-      }
-
       // If this node has no type yet, it can accept any connection
       if (node.data.itemType === null) {
+        console.log('Accepted: Untyped dynamic node');
         return true;
       }
 
-      // If dragging from a source handle (output), highlight valid input handles
-      if (isDraggingFromSource) {
-        return node.data.itemType === connectionState.sourceItemName;
+      // If source is a wildcard (*), any connection is valid
+      if (connectionState.sourceItemName === '*') {
+        console.log('Accepted: Wildcard connection to dynamic node');
+        return true;
       }
-      
-      // If dragging from a target handle (input), highlight valid output handles
-      return node.data.itemType === connectionState.sourceItemName;
+
+      // Check if the item types match
+      const matches = node.data.itemType === connectionState.sourceItemName;
+      console.log(`Dynamic node - checking ${isDraggingFromSource ? 'input' : 'output'} type:`, {
+        nodeItemType: node.data.itemType,
+        sourceItemName: connectionState.sourceItemName,
+        matches
+      });
+
+      return matches;
     }
 
+    console.log('Rejected: Unknown node type');
     return false;
   }, []);
 
   const enhancedNodes = useMemo(() => 
-    nodes.map(node => ({
-      ...node,
-      data: {
-        ...node.data,
-        isConnecting: connectionState.nodeId !== null,
-        isValidConnection: isValidConnection(node, connectionState),
-        connectionState,
-      },
-    })), [nodes, connectionState]
+    nodes.map(node => {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          isConnecting: connectionState.nodeId !== null,
+          connectionState,
+          sourceItemName: connectionState.sourceItemName,
+          handleType: connectionState.handleType,
+        },
+      };
+    }), [nodes, connectionState]
   );
 
   return (
@@ -496,7 +569,7 @@ export function FlowEditor() {
 }
 
 export const isValidConnection = (node: FlowNode, connectionState: ConnectionState): boolean => {
-  if (connectionState.nodeId === null || connectionState.nodeId === node.id) {
+  if (connectionState.nodeId === null) {
     return false;
   }
 
@@ -506,37 +579,33 @@ export const isValidConnection = (node: FlowNode, connectionState: ConnectionSta
   if (isRecipeNode(node.data)) {
     if (!node.data.recipe) return false;
     
-    // When dragging from a source handle (output), highlight valid input handles
-    if (isDraggingFromSource) {
-      return node.data.recipe.inputs.some((input: { name: string }) => 
-        input.name === connectionState.sourceItemName || connectionState.sourceItemName === '*'
-      );
+    // When dragging from a source handle (output), we should check if this node's inputs match
+    // When dragging from a target handle (input), we should check if this node's outputs match
+    const itemsToCheck = isDraggingFromSource ? node.data.recipe.inputs : node.data.recipe.outputs;
+
+    // If source is a wildcard (*), any connection is valid
+    if (connectionState.sourceItemName === '*') {
+      return true;
     }
-    
-    // When dragging from a target handle (input), highlight valid output handles
-    return node.data.recipe.outputs.some((output: { name: string }) => 
-      output.name === connectionState.sourceItemName || connectionState.sourceItemName === '*'
+
+    return itemsToCheck.some((item: { name: string }) => 
+      item.name === connectionState.sourceItemName
     );
   }
 
   // For dynamic nodes (splerger/sink)
   if (isDynamicNode(node.data)) {
-    // Skip the node we're dragging from
-    if (node.id === connectionState.nodeId) {
-      return false;
-    }
-
     // If this node has no type yet, it can accept any connection
     if (node.data.itemType === null) {
       return true;
     }
 
-    // If dragging from a source handle (output), highlight valid input handles
-    if (isDraggingFromSource) {
-      return node.data.itemType === connectionState.sourceItemName;
+    // If source is a wildcard (*), any connection is valid
+    if (connectionState.sourceItemName === '*') {
+      return true;
     }
-    
-    // If dragging from a target handle (input), highlight valid output handles
+
+    // Check if the item types match
     return node.data.itemType === connectionState.sourceItemName;
   }
 
