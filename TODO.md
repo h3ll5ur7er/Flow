@@ -1,13 +1,27 @@
 # TODO
 
-## UI Improvements
-- Add icons for items in recipe nodes
-  - Icons should be displayed next to item names in input/output columns
-  - Consider using game-specific icons or generic placeholders
-  - Ensure icons are properly sized and aligned with text
+## Priority High
 
-## Features
-- Import/Export functionality for flow graphs
+- add button to create new game metadata
+- add button to create new flow
+- Dynamic node type e.g. Sink allows all items
+- Splitter/Merger/Splurger
+- remove ability to create "empty" nodes (nodes without recipes)
+- drag-drop to empty space -> create new node with matching item
 - Subgraph support
+- Node multiplicity (switch between parts per minute (ppm) and machine instance count)
+
+## Priority Medium
+
+- highlight unconnected nodes
 - Recipe validation
-- Production rate calculation 
+- Production rate calculation
+- power/time calculation
+- deployment (github actions, github pages)
+
+## Priority Low
+
+- Add icons for items and machines
+  - Icons should be displayed instead of item names in input/output columns
+  - Icons should be displayed instead of machine names in center columns
+- game metadata selection (factorio, satisfactory, ...)

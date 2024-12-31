@@ -1,22 +1,18 @@
-import { Handle, Position, useStore as useReactFlowStore } from 'reactflow';
+import { Handle, Position } from 'reactflow';
 import { Card, CardContent, Typography, Box } from '@mui/material';
-import { Recipe } from '../../store/useStore';
+import { useMemo } from 'react';
+import { RecipeNodeData, HandleType } from '../../types';
 
-interface NodeData {
-  label: string;
-  recipe: Recipe | null;
-  isConnecting: boolean;
-  validHandles: Set<string>;
-  connectionState: {
-    nodeId: string | null;
-    handleId: string | null;
-    handleType: 'source' | 'target' | null;
-    sourceItemName: string | null;
-  };
-}
+const baseHandleStyle = {
+  width: '16px',
+  height: '16px',
+  borderRadius: '8px',
+  zIndex: 1,
+  transition: 'all 0.2s ease',
+};
 
-export function RecipeNode({ data }: { data: NodeData }) {
-  const isHandleValid = (handleId: string, itemName: string) => {
+export function RecipeNode({ data }: { data: RecipeNodeData }) {
+  const isHandleValid = useMemo(() => (handleId: string, itemName: string) => {
     if (!data.isConnecting || !data.connectionState.sourceItemName) return true;
     
     // If we're dragging from a source (output), only highlight matching input handles
@@ -27,40 +23,26 @@ export function RecipeNode({ data }: { data: NodeData }) {
     // Only validate if we're looking at the right type of handle
     if (isInput !== isDraggingFromSource) return false;
 
-    console.log('Validating handle:', {
-      handleId,
-      itemName,
-      sourceItemName: data.connectionState.sourceItemName,
-      isInput,
-      isDraggingFromSource
-    });
-
     // Check if the item types match
     return itemName === data.connectionState.sourceItemName;
-  };
+  }, [data.isConnecting, data.connectionState.sourceItemName, data.connectionState.handleId]);
 
-  const getHandleStyle = (handleId: string, type: 'source' | 'target', itemName: string) => {
+  const getHandleStyle = useMemo(() => (handleId: string, type: HandleType, itemName: string) => {
     const isValid = isHandleValid(handleId, itemName);
     const isConnecting = data.isConnecting;
 
-    const baseStyle = {
-      width: '16px',
-      height: '16px',
+    return {
+      ...baseHandleStyle,
       background: isConnecting ? (isValid ? '#4CAF50' : '#666') : '#666',
       border: isConnecting ? (isValid ? '2px solid #2E7D32' : '1px solid #888') : '1px solid #888',
-      [type === 'source' ? 'right' : 'left']: '-8px',
+      [type === HandleType.Source ? 'right' : 'left']: '-8px',
       top: '50%',
       transform: 'translateY(-50%)',
-      borderRadius: '8px',
       cursor: isConnecting ? (isValid ? 'pointer' : 'not-allowed') : 'pointer',
-      zIndex: 1,
       opacity: isConnecting ? (isValid ? 1 : 0.2) : 1,
       boxShadow: isConnecting && isValid ? '0 0 8px #4CAF50' : 'none',
-      transition: 'all 0.2s ease',
     };
-
-    return baseStyle;
-  };
+  }, [isHandleValid, data.isConnecting]);
 
   return (
     <Card sx={{ 
@@ -105,7 +87,7 @@ export function RecipeNode({ data }: { data: NodeData }) {
               type="target"
               position={Position.Left}
               id={`input-${index}`}
-              style={getHandleStyle(`input-${index}`, 'target', input.name)}
+              style={getHandleStyle(`input-${index}`, HandleType.Target, input.name)}
               data-item={input.name}
             />
           </Box>
@@ -167,7 +149,7 @@ export function RecipeNode({ data }: { data: NodeData }) {
               type="source"
               position={Position.Right}
               id={`output-${index}`}
-              style={getHandleStyle(`output-${index}`, 'source', output.name)}
+              style={getHandleStyle(`output-${index}`, HandleType.Source, output.name)}
               data-item={output.name}
             />
           </Box>

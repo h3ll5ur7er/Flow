@@ -1,4 +1,4 @@
-import { useCallback, useState, MouseEvent } from 'react';
+import { useCallback, useState, MouseEvent, useMemo } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -8,14 +8,12 @@ import ReactFlow, {
   EdgeChange,
   Connection,
   addEdge,
-  Edge,
-  Node,
   useReactFlow,
   ReactFlowProvider,
   ConnectionMode,
-  getConnectedEdges,
   OnConnectStart,
   OnConnectEnd,
+  NodeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useStore } from '../store/useStore';
@@ -23,34 +21,28 @@ import { Toolbar } from './Toolbar';
 import { RecipeNode } from './nodes/RecipeNode';
 import { SubgraphNode } from './nodes/SubgraphNode';
 import { ContextMenu } from './ContextMenu';
-
-const nodeTypes = {
-  recipe: RecipeNode,
-  subgraph: SubgraphNode,
-};
-
-interface ConnectionState {
-  nodeId: string | null;
-  handleId: string | null;
-  handleType: 'source' | 'target' | null;
-  validHandles: Set<string>;
-  sourceItemName: string | null;
-}
+import { ConnectionState, HandleType, FlowNode, FlowEdge } from '../types';
 
 function Flow() {
   const { nodes, edges, setNodes, setEdges } = useStore();
   const { project } = useReactFlow();
+  
+  // Memoize nodeTypes
+  const nodeTypes = useMemo<NodeTypes>(() => ({
+    recipe: RecipeNode,
+    subgraph: SubgraphNode,
+  }), []);
+
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     nodeId: null,
     handleId: null,
     handleType: null,
-    validHandles: new Set(),
     sourceItemName: null,
   });
   const [contextMenu, setContextMenu] = useState<{
     type: 'canvas' | 'node' | 'edge';
-    node?: Node;
-    edge?: Edge;
+    node?: FlowNode;
+    edge?: FlowEdge;
     position: { x: number; y: number } | null;
   }>({
     type: 'canvas',
@@ -71,25 +63,7 @@ function Flow() {
     [edges, setEdges]
   );
 
-  const getItemTypeFromHandle = (nodeId: string, handleId: string, isOutput: boolean) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (!node?.data.recipe) return null;
-
-    // Handle ID format is 'source-0' or 'target-0'
-    const parts = handleId.split('-');
-    if (parts.length !== 2) return null;
-    
-    const index = parseInt(parts[1]);
-    if (isNaN(index)) return null;
-
-    const items = isOutput ? node.data.recipe.outputs : node.data.recipe.inputs;
-    if (!items || index >= items.length) return null;
-
-    // Access the name property of the RecipeItem
-    return items[index]?.name || null;
-  };
-
-  const validateConnection = (connection: Connection) => {
+  const validateConnection = useCallback((connection: Connection) => {
     const sourceNode = nodes.find(n => n.id === connection.source);
     const targetNode = nodes.find(n => n.id === connection.target);
 
@@ -106,7 +80,7 @@ function Flow() {
 
     // Check if the item types match
     return sourceOutput?.name === targetInput?.name;
-  };
+  }, [nodes]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -116,65 +90,10 @@ function Flow() {
 
       setEdges(edges => addEdge(connection, edges));
     },
-    [nodes]
+    [validateConnection]
   );
 
-  const getValidHandles = (nodeId: string, handleId: string, handleType: 'source' | 'target') => {
-    console.log('getValidHandles called with:', { nodeId, handleId, handleType });
-    
-    const validHandles = new Set<string>();
-    const sourceNode = nodes.find(n => n.id === nodeId);
-    if (!sourceNode?.data.recipe) return validHandles;
-
-    // Get the source item type
-    const sourceIndex = parseInt(handleId.split('-')[1] || '');
-    console.log('Source index:', sourceIndex);
-    if (isNaN(sourceIndex)) return validHandles;
-
-    // Get the item we're dragging from
-    const sourceItems = handleType === 'source' ? sourceNode.data.recipe.outputs : sourceNode.data.recipe.inputs;
-    const sourceItem = sourceItems[sourceIndex];
-    console.log('Source item:', sourceItem);
-    if (!sourceItem) return validHandles;
-
-    // Create a map of valid item names to their handle IDs
-    const validItemHandles = new Map<string, Set<string>>();
-
-    // Check each node for valid connections
-    nodes.forEach(targetNode => {
-      if (targetNode.id === nodeId || !targetNode.data.recipe) return;
-      console.log('Checking target node:', targetNode.id);
-
-      // When dragging from a source (output), look at target (input) handles
-      // When dragging from a target (input), look at source (output) handles
-      const targetItems = handleType === 'source' ? targetNode.data.recipe.inputs : targetNode.data.recipe.outputs;
-      console.log('Target items:', targetItems);
-      
-      targetItems.forEach((targetItem: { name: string; quantity: number }, index: number) => {
-        console.log('Comparing items:', { sourceItem: sourceItem.name, targetItem: targetItem.name });
-        if (targetItem.name === sourceItem.name) {
-          // When dragging from source (output), highlight input handles
-          // When dragging from target (input), highlight output handles
-          const targetHandleId = handleType === 'source' ? `input-${index}` : `output-${index}`;
-          console.log('Adding valid handle:', targetHandleId);
-          
-          // Add to the map of valid item handles
-          if (!validItemHandles.has(targetItem.name)) {
-            validItemHandles.set(targetItem.name, new Set());
-          }
-          validItemHandles.get(targetItem.name)?.add(targetHandleId);
-          validHandles.add(targetHandleId);
-        }
-      });
-    });
-
-    console.log('Valid handles:', Array.from(validHandles));
-    console.log('Valid item handles:', Object.fromEntries(validItemHandles));
-    return validHandles;
-  };
-
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId, handleType }) => {
-    console.log('onConnectStart:', { nodeId, handleId, handleType });
     if (!nodeId || !handleId || !handleType) return;
 
     // Get the source node and item
@@ -184,29 +103,14 @@ function Flow() {
     const sourceIndex = parseInt(handleId.split('-')[1] || '');
     if (isNaN(sourceIndex)) return;
 
-    const sourceItems = handleType === 'source' ? sourceNode.data.recipe.outputs : sourceNode.data.recipe.inputs;
+    const sourceItems = handleType === HandleType.Source ? sourceNode.data.recipe.outputs : sourceNode.data.recipe.inputs;
     const sourceItem = sourceItems[sourceIndex];
     if (!sourceItem) return;
-
-    // Find all valid handles that match this item type
-    const validHandles = new Set<string>();
-    nodes.forEach(targetNode => {
-      if (targetNode.id === nodeId || !targetNode.data.recipe) return;
-
-      const targetItems = handleType === 'source' ? targetNode.data.recipe.inputs : targetNode.data.recipe.outputs;
-      targetItems.forEach((targetItem: { name: string; quantity: number }, index: number) => {
-        if (targetItem.name === sourceItem.name) {
-          const targetHandleId = handleType === 'source' ? `input-${index}` : `output-${index}`;
-          validHandles.add(targetHandleId);
-        }
-      });
-    });
 
     setConnectionState({
       nodeId,
       handleId,
-      handleType: handleType as 'source' | 'target',
-      validHandles,
+      handleType: handleType as HandleType,
       sourceItemName: sourceItem.name,
     });
   }, [nodes]);
@@ -216,7 +120,6 @@ function Flow() {
       nodeId: null,
       handleId: null,
       handleType: null,
-      validHandles: new Set(),
       sourceItemName: null,
     });
   }, []);
@@ -250,7 +153,7 @@ function Flow() {
   );
 
   const onNodeContextMenu = useCallback(
-    (event: MouseEvent, node: Node) => {
+    (event: MouseEvent, node: FlowNode) => {
       event.preventDefault();
       event.stopPropagation();
 
@@ -264,7 +167,7 @@ function Flow() {
   );
 
   const onEdgeContextMenu = useCallback(
-    (event: MouseEvent, edge: Edge) => {
+    (event: MouseEvent, edge: FlowEdge) => {
       event.preventDefault();
       event.stopPropagation();
 
@@ -296,24 +199,22 @@ function Flow() {
     setContextMenu((prev) => ({ ...prev, position: null }));
   }, []);
 
+  const enhancedNodes = useMemo(() => 
+    nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isConnecting: connectionState.nodeId !== null,
+        isValidConnection: connectionState.nodeId !== node.id && node.data.recipe !== null,
+        connectionState,
+      },
+    })), [nodes, connectionState]
+  );
+
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
-        nodes={nodes.map(node => ({
-          ...node,
-          data: {
-            ...node.data,
-            isConnecting: connectionState.nodeId !== null,
-            isValidConnection: connectionState.nodeId !== node.id && node.data.recipe !== null,
-            validHandles: connectionState.validHandles,
-            connectionState: {
-              nodeId: connectionState.nodeId,
-              handleId: connectionState.handleId,
-              handleType: connectionState.handleType,
-              sourceItemName: connectionState.sourceItemName,
-            },
-          },
-        }))}
+        nodes={enhancedNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
