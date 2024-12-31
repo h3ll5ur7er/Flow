@@ -6,7 +6,7 @@ import {
   TextField,
   Box,
 } from '@mui/material';
-import { Node, Edge } from 'reactflow';
+import { Node, Edge, useReactFlow } from 'reactflow';
 import { useStore, Recipe } from '../store/useStore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
@@ -31,6 +31,7 @@ export function ContextMenu({
   onDeleteNode,
   onDeleteEdge,
 }: ContextMenuProps) {
+  const { screenToFlowPosition } = useReactFlow();
   const { gameMetadata, setNodes } = useStore();
   const [expandedMachines, setExpandedMachines] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,26 @@ export function ContextMenu({
           : n
       )
     );
+    onClose();
+  };
+
+  const createNode = (type: string, data: any) => {
+    if (!position) return;
+    
+    const flowPosition = screenToFlowPosition({
+      x: position.x,
+      y: position.y,
+    });
+
+    setNodes(nodes => [
+      ...nodes,
+      {
+        id: `${type}-${nodes.length + 1}`,
+        type,
+        position: flowPosition,
+        data,
+      },
+    ]);
     onClose();
   };
 
@@ -109,33 +130,26 @@ export function ContextMenu({
     >
       {type === 'canvas' && (
         <>
-          <MenuItem onClick={() => {
-            setNodes(nodes => [
-              ...nodes,
-              {
-                id: `recipe-${nodes.length + 1}`,
-                type: 'recipe',
-                position: position,
-                data: { label: 'New Recipe', recipe: null },
-              },
-            ]);
-            onClose();
-          }}>
+          <MenuItem onClick={() => createNode('recipe', { 
+            recipe: null,
+            isConnecting: false,
+            isValidConnection: false
+          })}>
             Add Recipe
           </MenuItem>
-          <MenuItem onClick={() => {
-            setNodes(nodes => [
-              ...nodes,
-              {
-                id: `subgraph-${nodes.length + 1}`,
-                type: 'subgraph',
-                position: position,
-                data: { label: 'New Subgraph' },
-              },
-            ]);
-            onClose();
-          }}>
-            Add Subgraph
+          <MenuItem onClick={() => createNode('splerger', { 
+            type: 'splerger', 
+            label: 'Splerger', 
+            itemType: null 
+          })}>
+            Add Splerger
+          </MenuItem>
+          <MenuItem onClick={() => createNode('sink', { 
+            type: 'sink', 
+            label: 'Sink', 
+            itemType: null 
+          })}>
+            Add Sink
           </MenuItem>
         </>
       )}
@@ -190,6 +204,11 @@ export function ContextMenu({
             Delete Node
           </MenuItem>
         </>
+      )}
+      {(type === 'node' && (node?.type === 'splerger' || node?.type === 'sink')) && (
+        <MenuItem onClick={handleDeleteNode} sx={{ color: 'error.main' }}>
+          Delete Node
+        </MenuItem>
       )}
       {type === 'edge' && (
         <MenuItem onClick={handleDeleteEdge} sx={{ color: 'error.main' }}>

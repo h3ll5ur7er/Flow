@@ -2,19 +2,7 @@ import { Node, Edge } from 'reactflow';
 
 export enum HandleType {
   Source = 'source',
-  Target = 'target'
-}
-
-export interface RecipeItem {
-  name: string;
-  quantity: number;
-}
-
-export interface Recipe {
-  name: string;
-  machine: string;
-  inputs: RecipeItem[];
-  outputs: RecipeItem[];
+  Target = 'target',
 }
 
 export interface ConnectionState {
@@ -24,17 +12,41 @@ export interface ConnectionState {
   sourceItemName: string | null;
 }
 
+export interface Recipe {
+  name: string;
+  inputs: Array<{
+    name: string;
+    quantity: number;
+  }>;
+  outputs: Array<{
+    name: string;
+    quantity: number;
+  }>;
+}
+
 export interface RecipeNodeData {
-  label: string;
   recipe: Recipe | null;
-  isConnecting: boolean;
-  connectionState: ConnectionState;
+  isConnecting?: boolean;
+  isValidConnection?: boolean;
+  connectionState?: ConnectionState;
 }
 
-export interface SubgraphNodeData {
-  label: string;
-  flowId: string;
+export interface DynamicNodeData {
+  type: 'splerger' | 'sink';
+  itemType: string | null;
+  label?: string;
+  isConnecting?: boolean;
+  isValidConnection?: boolean;
+  connectionState?: ConnectionState;
 }
 
-export type FlowNode = Node<RecipeNodeData | SubgraphNodeData>;
-export type FlowEdge = Edge; 
+export type FlowNodeData = RecipeNodeData | DynamicNodeData;
+
+export type FlowNode = Node<FlowNodeData>;
+export type FlowEdge = Edge;
+
+export const isDynamicNode = (data: FlowNodeData): data is DynamicNodeData => 
+  'type' in data && (data.type === 'splerger' || data.type === 'sink');
+
+export const isRecipeNode = (data: FlowNodeData): data is RecipeNodeData => 
+  'recipe' in data; 

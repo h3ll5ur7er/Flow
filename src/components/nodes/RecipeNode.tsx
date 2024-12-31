@@ -1,160 +1,126 @@
-import { Handle, Position } from 'reactflow';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import { useMemo } from 'react';
-import { RecipeNodeData, HandleType } from '../../types';
+import { memo, useMemo } from 'react';
+import { Handle, Position, NodeProps } from 'reactflow';
+import { Box, Typography } from '@mui/material';
+import { RecipeNodeData } from '../../types';
 
-const baseHandleStyle = {
-  width: '16px',
-  height: '16px',
-  borderRadius: '8px',
-  zIndex: 1,
-  transition: 'all 0.2s ease',
-};
+const getHandleStyle = (isConnecting: boolean, isValidConnection: boolean) => ({
+  width: 16,
+  height: 16,
+  background: isConnecting
+    ? (isValidConnection ? '#4caf50' : '#f44336')
+    : '#555',
+  borderRadius: '50%',
+  border: '2px solid #333',
+  left: -8,  // Offset by half width to position center at edge
+});
 
-export function RecipeNode({ data }: { data: RecipeNodeData }) {
-  const isHandleValid = useMemo(() => (handleId: string, itemName: string) => {
-    if (!data.isConnecting || !data.connectionState.sourceItemName) return true;
-    
-    // If we're dragging from a source (output), only highlight matching input handles
-    // If we're dragging from a target (input), only highlight matching output handles
-    const isInput = handleId.startsWith('input-');
-    const isDraggingFromSource = data.connectionState.handleId?.startsWith('output-');
+const getRightHandleStyle = (isConnecting: boolean, isValidConnection: boolean) => ({
+  ...getHandleStyle(isConnecting, isValidConnection),
+  left: 'auto',
+  right: -8,  // Offset by half width to position center at edge
+});
 
-    // Only validate if we're looking at the right type of handle
-    if (isInput !== isDraggingFromSource) return false;
+export const RecipeNode = memo(({ id, data }: NodeProps<RecipeNodeData>) => {
+  const isValidConnection = useMemo(() => {
+    if (!data.isConnecting || !data.connectionState?.sourceItemName) return true;
 
-    // Check if the item types match
-    return itemName === data.connectionState.sourceItemName;
-  }, [data.isConnecting, data.connectionState.sourceItemName, data.connectionState.handleId]);
+    const recipe = data.recipe;
+    if (!recipe) return false;
 
-  const getHandleStyle = useMemo(() => (handleId: string, type: HandleType, itemName: string) => {
-    const isValid = isHandleValid(handleId, itemName);
-    const isConnecting = data.isConnecting;
+    const isDraggingFromSource = data.connectionState?.handleId?.startsWith('output-');
+    const itemName = isDraggingFromSource
+      ? recipe.inputs[parseInt(data.connectionState?.handleId?.split('-')[1] || '0')]?.name
+      : recipe.outputs[parseInt(data.connectionState?.handleId?.split('-')[1] || '0')]?.name;
 
-    return {
-      ...baseHandleStyle,
-      background: isConnecting ? (isValid ? '#4CAF50' : '#666') : '#666',
-      border: isConnecting ? (isValid ? '2px solid #2E7D32' : '1px solid #888') : '1px solid #888',
-      [type === HandleType.Source ? 'right' : 'left']: '-8px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      cursor: isConnecting ? (isValid ? 'pointer' : 'not-allowed') : 'pointer',
-      opacity: isConnecting ? (isValid ? 1 : 0.2) : 1,
-      boxShadow: isConnecting && isValid ? '0 0 8px #4CAF50' : 'none',
-    };
-  }, [isHandleValid, data.isConnecting]);
+    if (!itemName) return false;
+
+    return itemName === data.connectionState?.sourceItemName;
+  }, [data.isConnecting, data.connectionState?.sourceItemName, data.connectionState?.handleId]);
+
+  const leftHandleStyle = getHandleStyle(data.isConnecting ?? false, isValidConnection);
+  const rightHandleStyle = getRightHandleStyle(data.isConnecting ?? false, isValidConnection);
+
+  // Show placeholder if no recipe is selected
+  if (!data.recipe) {
+    return (
+      <Box sx={{
+        background: '#333',
+        color: '#fff',
+        border: '2px dashed #666',
+        borderRadius: 1,
+        p: 1,
+        minWidth: 120,
+        fontSize: '0.8rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 60,
+      }}>
+        <Typography variant="caption" align="center">
+          Right-click to select recipe
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Card sx={{ 
-      backgroundColor: '#1e1e1e',
+    <Box sx={{
+      background: '#333',
       color: '#fff',
-      border: '1px solid #333',
-      display: 'flex',
-      minWidth: 300,
+      border: 'none',
+      borderRadius: 1,
+      minWidth: 120,
+      fontSize: '0.8rem',
       position: 'relative',
-      overflow: 'visible'
     }}>
-      {/* Input Column */}
-      <Box sx={{ 
-        width: 120, 
-        borderRight: '1px solid #333',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-      }}>
-        {data.recipe && data.recipe.inputs.map((input, index, array) => (
-          <Box
-            key={`input-${index}`}
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
+      <Box sx={{ display: 'flex', gap: 1, p: 1 }}>
+        <Box sx={{ flex: 1 }}>
+          {data.recipe.inputs.map((input, index) => (
+            <Box key={`input-${index}`} sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              mb: 0.5,
               position: 'relative',
-              p: 1,
-              borderBottom: index !== array.length - 1 ? '1px solid #333' : 'none',
-              minHeight: 40,
-              '& .react-flow__handle': {
-                opacity: 1,
-                zIndex: 3
-              }
-            }}
-          >
-            <Typography variant="body2" sx={{ pr: 2 }}>
-              {input.quantity > 1 ? `${input.quantity}x ` : ''}{input.name}
-            </Typography>
-            <Handle
-              type="target"
-              position={Position.Left}
-              id={`input-${index}`}
-              style={getHandleStyle(`input-${index}`, HandleType.Target, input.name)}
-              data-item={input.name}
-            />
-          </Box>
-        ))}
-      </Box>
-
-      {/* Content Column */}
-      <CardContent sx={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        p: 2,
-        '&:last-child': { pb: 2 }
-      }}>
-        <Typography variant="h6" gutterBottom sx={{ color: 'inherit' }}>
-          {data.label}
-        </Typography>
-        {data.recipe ? (
-          <Typography color="text.secondary" variant="body2">
-            Machine: {data.recipe.machine}
-          </Typography>
-        ) : (
-          <Typography color="text.secondary" variant="body2">
-            Right-click to set recipe
-          </Typography>
-        )}
-      </CardContent>
-
-      {/* Output Column */}
-      <Box sx={{ 
-        width: 120, 
-        borderLeft: '1px solid #333',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-      }}>
-        {data.recipe && data.recipe.outputs.map((output, index, array) => (
-          <Box
-            key={`output-${index}`}
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
+              height: 24,
+            }}>
+              <Handle
+                type="target"
+                position={Position.Left}
+                style={leftHandleStyle}
+                id={`input-${index}`}
+              />
+              <Typography variant="caption" sx={{ ml: 2 }}>
+                {input.name} × {input.quantity}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+        <Box sx={{ flex: 1, textAlign: 'right' }}>
+          {data.recipe.outputs.map((output, index) => (
+            <Box key={`output-${index}`} sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'flex-end', 
+              mb: 0.5,
               position: 'relative',
-              p: 1,
-              borderBottom: index !== array.length - 1 ? '1px solid #333' : 'none',
-              minHeight: 40,
-              '& .react-flow__handle': {
-                opacity: 1,
-                zIndex: 3
-              }
-            }}
-          >
-            <Typography variant="body2" sx={{ pl: 2 }}>
-              {output.quantity > 1 ? `${output.quantity}x ` : ''}{output.name}
-            </Typography>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`output-${index}`}
-              style={getHandleStyle(`output-${index}`, HandleType.Source, output.name)}
-              data-item={output.name}
-            />
-          </Box>
-        ))}
+              height: 24,
+            }}>
+              <Typography variant="caption" sx={{ mr: 2 }}>
+                {output.name} × {output.quantity}
+              </Typography>
+              <Handle
+                type="source"
+                position={Position.Right}
+                style={rightHandleStyle}
+                id={`output-${index}`}
+              />
+            </Box>
+          ))}
+        </Box>
       </Box>
-    </Card>
+      <Typography variant="caption" align="center" display="block" sx={{ opacity: 0.7, fontSize: '0.7rem', mt: 0.5, mb: 1 }}>
+        {data.recipe.name}
+      </Typography>
+    </Box>
   );
-} 
+}); 
