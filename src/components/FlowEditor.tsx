@@ -13,26 +13,18 @@ import ReactFlow, {
   ConnectionMode,
   OnConnectStart,
   OnConnectEnd,
-  NodeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useStore } from '../store/useStore';
 import { Toolbar } from './Toolbar';
-import { RecipeNode } from './nodes/RecipeNode';
-import { SubgraphNode } from './nodes/SubgraphNode';
 import { ContextMenu } from './ContextMenu';
 import { ConnectionState, HandleType, FlowNode, FlowEdge } from '../types';
+import { NODE_TYPES } from '../nodeTypes';
 
 function Flow() {
   const { nodes, edges, setNodes, setEdges } = useStore();
-  const { project } = useReactFlow();
+  const { screenToFlowPosition } = useReactFlow();
   
-  // Memoize nodeTypes
-  const nodeTypes = useMemo<NodeTypes>(() => ({
-    recipe: RecipeNode,
-    subgraph: SubgraphNode,
-  }), []);
-
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     nodeId: null,
     handleId: null,
@@ -64,6 +56,10 @@ function Flow() {
   );
 
   const validateConnection = useCallback((connection: Connection) => {
+    if (!connection.source || !connection.target || !connection.sourceHandle || !connection.targetHandle) {
+      return false;
+    }
+
     const sourceNode = nodes.find(n => n.id === connection.source);
     const targetNode = nodes.find(n => n.id === connection.target);
 
@@ -72,8 +68,8 @@ function Flow() {
     }
 
     // Extract item types from the source output and target input
-    const sourceOutputIndex = parseInt(connection.sourceHandle?.split('-')[1] || '0');
-    const targetInputIndex = parseInt(connection.targetHandle?.split('-')[1] || '0');
+    const sourceOutputIndex = parseInt(connection.sourceHandle.split('-')[1] || '0');
+    const targetInputIndex = parseInt(connection.targetHandle.split('-')[1] || '0');
 
     const sourceOutput = sourceNode.data.recipe.outputs[sourceOutputIndex];
     const targetInput = targetNode.data.recipe.inputs[targetInputIndex];
@@ -136,20 +132,17 @@ function Flow() {
         return;
       }
 
-      const bounds = target.closest('.react-flow')?.getBoundingClientRect();
-      if (bounds) {
-        const position = project({
-          x: event.clientX - bounds.left,
-          y: event.clientY - bounds.top,
-        });
+      screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
 
-        setContextMenu({
-          type: 'canvas',
-          position: { x: event.clientX, y: event.clientY },
-        });
-      }
+      setContextMenu({
+        type: 'canvas',
+        position: { x: event.clientX, y: event.clientY },
+      });
     },
-    [project]
+    [screenToFlowPosition]
   );
 
   const onNodeContextMenu = useCallback(
@@ -225,7 +218,7 @@ function Flow() {
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         onPaneClick={closeContextMenu}
-        nodeTypes={nodeTypes}
+        nodeTypes={NODE_TYPES}
         connectionMode={ConnectionMode.Strict}
         snapToGrid
         fitView

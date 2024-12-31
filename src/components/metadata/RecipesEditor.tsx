@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { Recipe, Machine, Item } from '../../store/useStore';
+import { Recipe, Machine, Item, RecipeItem } from '../../store/useStore';
 
 interface Props {
   recipes: Recipe[];
@@ -55,20 +55,11 @@ export function RecipesEditor({ recipes, machines, items, onChange }: Props) {
     onChange(newRecipes);
   };
 
-  const handleItemAdd = (recipeIndex: number, field: 'inputs' | 'outputs', itemName: string) => {
-    const newRecipes = [...recipes];
-    newRecipes[recipeIndex] = {
-      ...newRecipes[recipeIndex],
-      [field]: [...newRecipes[recipeIndex][field], { name: itemName, quantity: 1 }],
-    };
-    onChange(newRecipes);
-  };
-
   const handleItemRemove = (recipeIndex: number, field: 'inputs' | 'outputs', itemIndex: number) => {
     const newRecipes = [...recipes];
     newRecipes[recipeIndex] = {
       ...newRecipes[recipeIndex],
-      [field]: newRecipes[recipeIndex][field].filter((_, i) => i !== itemIndex),
+      [field]: newRecipes[recipeIndex][field].filter((_, i: number) => i !== itemIndex),
     };
     onChange(newRecipes);
   };
@@ -82,7 +73,7 @@ export function RecipesEditor({ recipes, machines, items, onChange }: Props) {
     const newRecipes = [...recipes];
     newRecipes[recipeIndex] = {
       ...newRecipes[recipeIndex],
-      [field]: newRecipes[recipeIndex][field].map((item, i) =>
+      [field]: newRecipes[recipeIndex][field].map((item: RecipeItem, i: number) =>
         i === itemIndex ? { ...item, quantity: Math.max(1, quantity) } : item
       ),
     };
@@ -144,7 +135,7 @@ export function RecipesEditor({ recipes, machines, items, onChange }: Props) {
                     });
                     handleChange(index, 'inputs', newInputs);
                   }}
-                  renderValue={(selected) => (
+                  renderValue={() => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {recipe.inputs.map((item, itemIndex) => (
                         <Box key={itemIndex} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -194,7 +185,7 @@ export function RecipesEditor({ recipes, machines, items, onChange }: Props) {
                     });
                     handleChange(index, 'outputs', newOutputs);
                   }}
-                  renderValue={(selected) => (
+                  renderValue={() => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {recipe.outputs.map((item, itemIndex) => (
                         <Box key={itemIndex} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

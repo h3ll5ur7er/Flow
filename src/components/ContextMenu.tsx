@@ -1,6 +1,13 @@
-import { Menu, MenuItem, ListSubheader, Collapse, IconButton, TextField, Box } from '@mui/material';
+import {
+  Menu,
+  MenuItem,
+  Collapse,
+  IconButton,
+  TextField,
+  Box,
+} from '@mui/material';
 import { Node, Edge } from 'reactflow';
-import { useStore } from '../store/useStore';
+import { useStore, Recipe } from '../store/useStore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { useState } from 'react';
@@ -29,9 +36,9 @@ export function ContextMenu({
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSetRecipe = (recipeId: string) => {
-    if (!node) return;
+    if (!node || !gameMetadata) return;
 
-    const recipe = gameMetadata?.recipes.find(r => r.name === recipeId);
+    const recipe = gameMetadata.recipes.find(r => r.name === recipeId);
     setNodes(nodes =>
       nodes.map(n =>
         n.id === node.id
@@ -71,16 +78,16 @@ export function ContextMenu({
   };
 
   // Group recipes by machine
-  const recipesByMachine = gameMetadata?.recipes.reduce((acc, recipe) => {
+  const recipesByMachine = gameMetadata?.recipes.reduce<Record<string, Recipe[]>>((acc, recipe) => {
     if (!acc[recipe.machine]) {
       acc[recipe.machine] = [];
     }
     acc[recipe.machine].push(recipe);
     return acc;
-  }, {} as Record<string, typeof gameMetadata.recipes>) || {};
+  }, {}) || {};
 
   // Filter recipes based on search query
-  const filteredRecipesByMachine = Object.entries(recipesByMachine).reduce((acc, [machine, recipes]) => {
+  const filteredRecipesByMachine = Object.entries(recipesByMachine).reduce<Record<string, Recipe[]>>((acc, [machine, recipes]) => {
     const filteredRecipes = recipes.filter(recipe => 
       recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       machine.toLowerCase().includes(searchQuery.toLowerCase())
@@ -89,7 +96,7 @@ export function ContextMenu({
       acc[machine] = filteredRecipes;
     }
     return acc;
-  }, {} as Record<string, typeof gameMetadata.recipes>);
+  }, {});
 
   if (!position) return null;
 

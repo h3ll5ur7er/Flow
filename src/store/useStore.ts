@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Node, Edge } from 'reactflow';
 
-interface GameMetadata {
+export interface GameMetadata {
   name: string;
   version: string;
   machines: Machine[];
@@ -9,23 +9,23 @@ interface GameMetadata {
   recipes: Recipe[];
 }
 
-interface Machine {
+export interface Machine {
   name: string;
   inputs: number;
   outputs: number;
 }
 
-interface Item {
+export interface Item {
   name: string;
   stackSize: number;
 }
 
-interface RecipeItem {
+export interface RecipeItem {
   name: string;
   quantity: number;
 }
 
-interface Recipe {
+export interface Recipe {
   name: string;
   inputs: RecipeItem[];
   outputs: RecipeItem[];
@@ -36,7 +36,7 @@ interface FlowState {
   nodes: Node[];
   edges: Edge[];
   flowName: string;
-  gameMetadata: GameMetadata | null;
+  gameMetadata: GameMetadata;
   setNodes: (nodes: Node[] | ((prev: Node[]) => Node[])) => void;
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   setFlowName: (name: string) => void;
@@ -44,7 +44,7 @@ interface FlowState {
 }
 
 // Load game metadata from localStorage
-const loadGameMetadata = () => {
+const loadGameMetadata = (): GameMetadata => {
   try {
     const persistedMetadata = localStorage.getItem('flowGameMetadata');
     if (persistedMetadata) {
@@ -80,13 +80,9 @@ const loadFlowGraph = () => {
 };
 
 // Save game metadata to localStorage
-const persistGameMetadata = (metadata: GameMetadata | null) => {
+const persistGameMetadata = (metadata: GameMetadata) => {
   try {
-    if (metadata) {
-      localStorage.setItem('flowGameMetadata', JSON.stringify(metadata));
-    } else {
-      localStorage.removeItem('flowGameMetadata');
-    }
+    localStorage.setItem('flowGameMetadata', JSON.stringify(metadata));
   } catch (err) {
     console.error('Failed to persist game metadata:', err);
   }
@@ -128,7 +124,7 @@ export const useStore = create<FlowState>((set) => ({
     persistFlowGraph(state.nodes, state.edges, flowName);
     return { flowName };
   }),
-  setGameMetadata: (metadata) => set((state) => {
+  setGameMetadata: (metadata) => set(() => {
     persistGameMetadata(metadata);
     return { gameMetadata: metadata };
   }),

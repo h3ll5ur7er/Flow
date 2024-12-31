@@ -1,5 +1,4 @@
-import { Button, Paper } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Button, Box } from '@mui/material';
 import { useState } from 'react';
 import { GameMetadataEditor } from './metadata/GameMetadataEditor';
 
@@ -8,24 +7,18 @@ export function Toolbar() {
 
   return (
     <>
-      <Paper
-        elevation={3}
+      <Box
         sx={{
           position: 'absolute',
-          top: 20,
-          left: 20,
-          zIndex: 1000,
-          p: 1,
+          top: 10,
+          right: 10,
+          zIndex: 1,
         }}
       >
-        <Button
-          variant="contained"
-          startIcon={<SettingsIcon />}
-          onClick={() => setIsMetadataEditorOpen(true)}
-        >
-          Game Metadata
+        <Button variant="contained" onClick={() => setIsMetadataEditorOpen(true)}>
+          Edit Metadata
         </Button>
-      </Paper>
+      </Box>
 
       <GameMetadataEditor
         open={isMetadataEditorOpen}
